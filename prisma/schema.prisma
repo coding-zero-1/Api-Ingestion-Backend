@@ -13,8 +13,23 @@ model User {
   password      String
   createdAt     DateTime       @default(now())
   refreshTokens RefreshToken[]
+  apiKeys       ApiKey[]
 
   @@map("users")
+}
+
+model ApiKey {
+  id        String    @id @default(uuid())
+  userId    String
+  name      String
+  keyHash   String    @unique
+  prefix    String
+  createdAt DateTime  @default(now())
+  lastUsed  DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("api_keys")
 }
 
 model RefreshToken {
