@@ -9,6 +9,7 @@ import { authRoutes } from "./routes/auth.routes";
 import { logsRoutes } from "./routes/logs.routes";
 import { metricsRoutes } from "./routes/metrics.routes";
 import { anomalyRoutes } from "./routes/anomaly.routes";
+import { apiKeyRoutes } from "./routes/apikey.routes";
 
 const buildServer = async () => {
   const fastify = Fastify({
@@ -56,6 +57,7 @@ const buildServer = async () => {
   await fastify.register(logsRoutes);
   await fastify.register(metricsRoutes);
   await fastify.register(anomalyRoutes);
+  await fastify.register(apiKeyRoutes);
 
   // Health check
   fastify.get("/health", async () => ({ status: "ok", timestamp: new Date().toISOString() }));
