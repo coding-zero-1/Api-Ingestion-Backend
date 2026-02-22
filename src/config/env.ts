@@ -6,8 +6,8 @@ const envSchema = z.object({
   ACCESS_TOKEN_SECRET: z.string().min(32),
   REFRESH_TOKEN_SECRET: z.string().min(32),
   GEMINI_API_KEY: z.string().min(1),
-  FRONTEND_ORIGIN: z.string().url(),
-  PORT: z.string().default("3001"),
+  FRONTEND_ORIGIN: z.string().min(1),
+  PORT: z.string().default("4000"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });
 

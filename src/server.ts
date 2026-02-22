@@ -20,8 +20,15 @@ const buildServer = async () => {
 
   // Plugins
   await fastify.register(fastifyCookie);
+  const allowedOrigins = env.FRONTEND_ORIGIN.split(",").map((o) => o.trim());
   await fastify.register(fastifyCors, {
-    origin: env.FRONTEND_ORIGIN,
+    origin: (origin, cb) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        cb(null, true);
+      } else {
+        cb(new Error("Not allowed by CORS"), false);
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
