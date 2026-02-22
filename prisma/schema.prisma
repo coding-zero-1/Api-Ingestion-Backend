@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  createdAt     DateTime       @default(now())
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Log {
+  id           String   @id @default(uuid())
+  endpoint     String
+  method       String
+  statusCode   Int
+  responseTime Float
+  dbQueryTime  Float?
+  timestamp    DateTime
+  createdAt    DateTime @default(now())
+
+  @@index([endpoint])
+  @@index([timestamp])
+  @@map("logs")
+}
+
+model MetricSnapshot {
+  id        String   @id @default(uuid())
+  endpoint  String
+  avgLatency Float
+  p95        Float
+  errorRate  Float
+  rps        Float
+  createdAt DateTime @default(now())
+
+  @@index([endpoint])
+  @@index([createdAt])
+  @@map("metric_snapshots")
+}
+
+model Anomaly {
+  id            String   @id @default(uuid())
+  endpoint      String
+  type          String
+  baseline      Float
+  current       Float
+  aiExplanation String?
+  createdAt     DateTime @default(now())
+
+  @@index([endpoint])
+  @@index([createdAt])
+  @@map("anomalies")
+}
