@@ -69,7 +69,7 @@ export const generateAIAnalysis = async (
   }
 
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-2.5-flash-lite",
     generationConfig: {
       temperature: 0.2,
     },
