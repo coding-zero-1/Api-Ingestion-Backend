@@ -9,7 +9,7 @@ export const rateLimitMiddleware = async (
   reply: FastifyReply
 ): Promise<void> => {
   const ip = request.ip;
-  const route = request.routerPath ?? request.url;
+  const route = request.routeOptions?.url ?? request.url;
   const key = `rate:${ip}:${route}`;
 
   const current = await redis.incr(key);
