@@ -1,5 +1,5 @@
 import "dotenv/config";
-import Fastify from "fastify";
+import Fastify, { type FastifyError } from "fastify";
 import fastifyCookie from "@fastify/cookie";
 import fastifyCors from "@fastify/cors";
 import { env } from "./config/env";
@@ -36,7 +36,7 @@ const buildServer = async () => {
   });
 
   // Global error handler
-  fastify.setErrorHandler((error, _request, reply) => {
+  fastify.setErrorHandler((error: FastifyError, _request, reply) => {
     fastify.log.error(error);
 
     if (error.validation) {

@@ -3,6 +3,7 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { prisma } from "../../config/prisma";
 import { env } from "../../config/env";
+import { conflict, unauthorized } from "../../config/errors";
 import type { RegisterInput, LoginInput } from "./auth.schema";
 
 const SALT_ROUNDS = 12;
@@ -34,7 +35,7 @@ const hashToken = (token: string): string => {
 export const registerUser = async (input: RegisterInput): Promise<{ id: string; email: string }> => {
   const existing = await prisma.user.findUnique({ where: { email: input.email } });
   if (existing) {
-    throw new Error("Email already in use");
+    throw conflict("Email already in use");
   }
 
   const hashedPassword = await bcrypt.hash(input.password, SALT_ROUNDS);
@@ -53,12 +54,12 @@ export const registerUser = async (input: RegisterInput): Promise<{ id: string; 
 export const loginUser = async (input: LoginInput): Promise<AuthTokens> => {
   const user = await prisma.user.findUnique({ where: { email: input.email } });
   if (!user) {
-    throw new Error("Invalid credentials");
+    throw unauthorized("Invalid credentials");
   }
 
   const valid = await bcrypt.compare(input.password, user.password);
   if (!valid) {
-    throw new Error("Invalid credentials");
+    throw unauthorized("Invalid credentials");
   }
 
   // Delete any existing refresh tokens for this user (single active token)
@@ -94,7 +95,7 @@ export const refreshTokens = async (incomingRefreshToken: string): Promise<AuthT
   try {
     payload = jwt.verify(incomingRefreshToken, env.REFRESH_TOKEN_SECRET) as RefreshPayload;
   } catch {
-    throw new Error("Invalid refresh token");
+    throw unauthorized("Invalid refresh token");
   }
 
   const tokenHash = hashToken(incomingRefreshToken);
@@ -106,12 +107,12 @@ export const refreshTokens = async (incomingRefreshToken: string): Promise<AuthT
   if (!stored || stored.tokenHash !== tokenHash || stored.userId !== payload.userId) {
     // Possible token reuse — delete all tokens for user
     await prisma.refreshToken.deleteMany({ where: { userId: payload.userId } });
-    throw new Error("Refresh token reuse detected");
+    throw unauthorized("Refresh token reuse detected");
   }
 
   if (stored.expiresAt < new Date()) {
     await prisma.refreshToken.delete({ where: { id: stored.id } });
-    throw new Error("Refresh token expired");
+    throw unauthorized("Refresh token expired");
   }
 
   // Rotate: delete old token

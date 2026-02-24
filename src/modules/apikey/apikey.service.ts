@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { prisma } from "../../config/prisma";
+import { badRequest, notFound } from "../../config/errors";
 
 const KEY_PREFIX_LENGTH = 8;
 const KEY_BYTES = 32;
@@ -25,7 +26,7 @@ export const createApiKey = async (
 ): Promise<{ key: string; record: ApiKeyRecord }> => {
   const count = await prisma.apiKey.count({ where: { userId } });
   if (count >= MAX_KEYS_PER_USER) {
-    throw new Error(`Maximum of ${MAX_KEYS_PER_USER} API keys allowed per account`);
+    throw badRequest(`Maximum of ${MAX_KEYS_PER_USER} API keys allowed per account`);
   }
 
   const rawKey = generateRawKey();
@@ -52,7 +53,7 @@ export const listApiKeys = async (userId: string): Promise<ApiKeyRecord[]> => {
 export const revokeApiKey = async (userId: string, keyId: string): Promise<void> => {
   const key = await prisma.apiKey.findUnique({ where: { id: keyId } });
   if (!key || key.userId !== userId) {
-    throw new Error("API key not found");
+    throw notFound("API key not found");
   }
   await prisma.apiKey.delete({ where: { id: keyId } });
 };
